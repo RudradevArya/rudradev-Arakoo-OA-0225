@@ -9,17 +9,21 @@ import Header from './Header';
 export default function TaskBoard({ user }) {
   const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user) return;
-  
+    
+    console.log("User ID:", user.uid); 
+
     const q = query(
       collection(db, 'tasks'),
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
   
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
       const tasksData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -27,7 +31,14 @@ export default function TaskBoard({ user }) {
       }));
       console.log("Tasks data:", tasksData); 
       setTasks(tasksData);
-    });
+      setError(null);
+    },
+    (err) => {
+      console.error("Error fetching tasks:", err);
+      setError(err.message);
+    }
+  
+  );
   
     return () => unsubscribe();
   }, [user]);
@@ -70,27 +81,33 @@ export default function TaskBoard({ user }) {
     <div>
       <Header user={user} />
       <button onClick={() => setIsModalOpen(true)}>Add Task</button>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="tasks">
-          {(provided) => (
-            <ul {...provided.droppableProps} ref={provided.innerRef}>
-              {tasks.map((task, index) => (
-                <Draggable key={task.id} draggableId={task.id} index={index}>
-                  {(provided) => (
-                    <TaskItem
-                      task={task}
-                      provided={provided}
-                      updateTask={updateTask}
-                      deleteTask={deleteTask}
-                    />
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </ul>
-          )}
-        </Droppable>
-      </DragDropContext>
+      {error ? (
+        <div style={{ color: 'red' }}>Error: {error}</div>
+      ) : tasks.length === 0 ? (
+        <div>No tasks found</div>
+      ) : (
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="tasks">
+            {(provided) => (
+              <ul {...provided.droppableProps} ref={provided.innerRef}>
+                {tasks.map((task, index) => (
+                  <Draggable key={task.id} draggableId={task.id} index={index}>
+                    {(provided) => (
+                      <TaskItem
+                        task={task}
+                        provided={provided}
+                        updateTask={updateTask}
+                        deleteTask={deleteTask}
+                      />
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </ul>
+            )}
+          </Droppable>
+        </DragDropContext>
+      )}
       <AddTaskModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
