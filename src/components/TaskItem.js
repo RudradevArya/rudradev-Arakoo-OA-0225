@@ -9,14 +9,19 @@ export default function TaskItem({ task, provided, updateTask, deleteTask }) {
     setIsEditing(false);
   };
 
+  const toggleDone = () => {
+    updateTask(task.id, { done: !task.done });
+  };
+
   return (
     <li
     ref={provided.innerRef}
     {...provided.draggableProps}
     {...provided.dragHandleProps}
+    className={`task-item ${task.done ? 'done' : ''}`}
     style={{
       border: '1px solid #ccc',
-      padding: '10px',
+      padding: '12px',
       marginBottom: '5px',
       backgroundColor: '#f9f9f9'
     }}
@@ -31,11 +36,12 @@ export default function TaskItem({ task, provided, updateTask, deleteTask }) {
       </>
     ) : (
       <>
-        <span style={{ fontWeight: 'bold' }}>{task.title}</span>
-        <div>
-          <button onClick={() => setIsEditing(true)}>Edit</button>
-          <button onClick={() => deleteTask(task.id)}>Delete</button>
-        </div>
+        <span style={{ textDecoration: task.done ? 'line-through' : 'none' }}>{task.title}</span>
+          <div>
+            <button onClick={toggleDone}>{task.done ? 'Undo' : 'Done'}</button>
+            <button onClick={() => setIsEditing(true)}>Edit</button>
+            <button onClick={() => deleteTask(task.id)}>Delete</button>
+          </div>
       </>
     )}
   </li>
