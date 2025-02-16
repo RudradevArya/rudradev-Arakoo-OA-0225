@@ -62,3 +62,9 @@ https://rudradev-arakoo-oa-0225.vercel.app/
 
 
 
+## Demo
+![Task board Demo at demo/demo.gif](demo/demo.gif)
+
+## YouTube Video
+
+[![Video Title](https://img.youtube.com/vi/kC0eeqvl2gM/maxresdefault.jpg)](https://www.youtube.com/watch?v=kC0eeqvl2gM)
