@@ -12,26 +12,39 @@ export default function TaskBoard({ user }) {
 
   useEffect(() => {
     if (!user) return;
-
+  
     const q = query(
-      collection(db, 'tasks'), 
+      collection(db, 'tasks'),
       where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'));
-
+      orderBy('createdAt', 'desc')
+    );
+  
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const tasksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const tasksData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() 
+      }));
+      console.log("Tasks data:", tasksData); 
       setTasks(tasksData);
     });
-
+  
     return () => unsubscribe();
   }, [user]);
 
   const addTask = async (taskData) => {
-    await addDoc(collection(db, 'tasks'), 
-    { ...taskData, 
-      userId: user.uid,
-      createdAt: serverTimestamp()
-     });
+    try {
+      const docRef = await addDoc(collection(db, 'tasks'), {
+        ...taskData,
+        userId: user.uid,
+        createdAt: serverTimestamp()
+      });
+      console.log("Document written with ID: ", docRef.id);
+      return docRef.id;
+    } catch (e) {
+      console.error("Error adding document: ", e);
+      throw e;
+    }
   };
 
   const updateTask = async (id, taskData) => {

@@ -3,11 +3,15 @@ import { useState } from 'react';
 export default function AddTaskModal({ isOpen, onClose, addTask }) {
   const [title, setTitle] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addTask({ title });
-    setTitle('');
-    onClose();
+    try {
+      await addTask({ title });
+      setTitle('');
+      onClose();
+    } catch (error) {
+      console.error("Error in handleSubmit:", error);
+    }
   };
 
   if (!isOpen) return null;
