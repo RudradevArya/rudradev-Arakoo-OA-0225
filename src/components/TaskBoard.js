@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
-import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, orderBy, serverTimestamp} from 'firebase/firestore';
 import TaskItem from './TaskItem';
 import AddTaskModal from './AddTaskModal';
 import Header from './Header';
@@ -11,7 +11,13 @@ export default function TaskBoard({ user }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'tasks'), where('userId', '==', user.uid));
+    if (!user) return;
+
+    const q = query(
+      collection(db, 'tasks'), 
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc'));
+
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const tasksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setTasks(tasksData);
@@ -21,7 +27,11 @@ export default function TaskBoard({ user }) {
   }, [user]);
 
   const addTask = async (taskData) => {
-    await addDoc(collection(db, 'tasks'), { ...taskData, userId: user.uid });
+    await addDoc(collection(db, 'tasks'), 
+    { ...taskData, 
+      userId: user.uid,
+      createdAt: serverTimestamp()
+     });
   };
 
   const updateTask = async (id, taskData) => {
